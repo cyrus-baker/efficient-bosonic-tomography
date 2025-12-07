@@ -1,0 +1,10 @@
+[project]
+name = "efficient-bosonic-tomography"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dynamiqs==0.3.4",
+    "jax[cuda12]==0.6.2",
+]
