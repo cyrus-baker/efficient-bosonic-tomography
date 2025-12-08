@@ -1,5 +1,5 @@
 import numpy as np
-from qutip import qfunc, Qobj, basis, wigner
+from qutip import qfunc, Qobj, wigner
 import scipy
 import scipy.signal
 from numpyro.distributions import constraints
@@ -9,8 +9,6 @@ import jax
 import jax.numpy as jnp
 import dynamiqs as dq
 from functools import partial
-
-from efficient_bosonic_tomography.displacer import Alpha2RowMultiMode
 
 
 def generate_qfunc(state: Qobj, xlim, y_lim, x_points, y_points, noise_level=None):
@@ -151,7 +149,6 @@ def generate_multimode_data(
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from numpyro.infer.initialization import init_to_uniform
     jax.config.update("jax_platform_name", "cpu")
     dq.set_device('cpu')
     jax.config.update("jax_enable_x64", True)
