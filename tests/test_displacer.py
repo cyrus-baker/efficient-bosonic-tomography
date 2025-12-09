@@ -108,5 +108,6 @@ def test_alpha2row_multimode_nonoise_trace_one():
     trace_val = jnp.trace(mat)
     assert result.shape == (nof_samples, dim * dim)
     assert jnp.allclose(trace_val, 1.0, atol=1e-5)
+    
 
 

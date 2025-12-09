@@ -124,7 +124,7 @@ class QRep(npy.distributions.Distribution):
 
 
 def generate_multimode_data(
-    state, N_single, nof_modes, num_chains=16, num_samples=200000, key=0
+    state, N_single, nof_modes, num_chains=16, num_samples=200000, warmup=50000, key=0
 ):
     # state to be learned
     rho0 = dq.unit(dq.todm(state)).to_jax()
@@ -134,7 +134,7 @@ def generate_multimode_data(
 
     mcmc = npy.infer.MCMC(
         npy.infer.NUTS(model),
-        num_warmup=50000,
+        num_warmup=warmup,
         num_samples=num_samples,
         num_chains=num_chains,
         chain_method="vectorized",
@@ -146,73 +146,3 @@ def generate_multimode_data(
 
     return samples["Q"]
 
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    jax.config.update("jax_platform_name", "cpu")
-    dq.set_device('cpu')
-    jax.config.update("jax_enable_x64", True)
-    jax.config.update("jax_compilation_cache_dir", "/tmp/jax_cache")
-    jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
-    jax.config.update("jax_persistent_cache_min_compile_time_secs", 0)
-
-    N_single = 5
-    nof_modes = 4
-    print("?????")
-
-    N = int(N_single**nof_modes)
-    # state = dq.basis(N, 0) + dq.basis(N, 4) + dq.basis(N, 8)
-    # state = dq.basis(N, 10) + dq.basis(N, 5) * 1j
-    # state = dq.coherent(N, 2.0) + dq.coherent(N, -2.0) + dq.coherent(N, 2j) + dq.coherent(N, -2j)
-    # state = dq.basis(N, 50)
-    # state = dq.tensor(dq.basis(N_single, 1), dq.basis(N_single, 1)) + dq.tensor(
-    #     dq.basis(N_single, 1), dq.basis(N_single, 0)
-    # )
-    # state = dq.tensor(dq.basis(N_single, 0), dq.basis(N_single, 0), dq.basis(N_single, 1), dq.basis(N_single, 1)) + dq.tensor(
-    #     dq.basis(N_single, 1), dq.basis(N_single, 1), dq.basis(N_single, 0), dq.basis(N_single, 0)
-    # )
-    # state = dq.unit(state)
-    test_alpha = 0.5
-    state = (
-        dq.tensor(
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, test_alpha),
-        )
-        + dq.tensor(
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, test_alpha),
-            dq.coherent(N_single, -test_alpha),
-        )
-        + dq.tensor(
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, test_alpha),
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, -test_alpha),
-        )
-        + dq.tensor(
-            dq.coherent(N_single, test_alpha),
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, -test_alpha),
-            dq.coherent(N_single, -test_alpha),
-        )
-    )
-    state = dq.unit(state)
-
-    Q_samples = generate_multimode_data(
-        state, N_single, nof_modes, num_chains=16, num_samples=200000, key=0
-    )
-
-    jnp.save("data/q_samples_four_modes.npy", Q_samples)
-
-    plt.figure()
-    plt.hist2d(Q_samples[:, 0], Q_samples[:, 1], bins=100)
-    plt.figure()
-    plt.hist2d(Q_samples[:, 2], Q_samples[:, 3], bins=100)
-
-
-
-    # import numpy as np
-    # hist = np.histogramdd(Q_samples, bins=32, density=True)
