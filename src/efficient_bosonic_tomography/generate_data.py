@@ -5,11 +5,13 @@ import scipy.signal
 from numpyro.distributions import constraints
 import numpyro as npy
 import jax
+import equinox as eqx
+from typing import List
 
 import jax.numpy as jnp
 import dynamiqs as dq
 from functools import partial
-
+from displacer import Displacer
 
 def generate_qfunc(state: Qobj, xlim, y_lim, x_points, y_points, noise_level=None):
     x_vec = np.linspace(*xlim, x_points)
@@ -45,13 +47,6 @@ def generate_wignerfunc(state: Qobj, xlim, y_lim, x_points, y_points):
     q_values = wigner(state, x_vec, y_vec, g=2)  # 这里取2仅仅是为了简化，让alpha= x+ 1p
 
     return x_vec, y_vec, q_values
-
-
-
-
-
-
-
 
 
 def _coherent(alpha, N):
