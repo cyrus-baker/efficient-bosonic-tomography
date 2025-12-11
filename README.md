@@ -1,6 +1,7 @@
 # Efficient-Bosonic-Tomography
-[![arXiv](https://img.shields.io/badge/arXiv-2509.06305-b31b1b.svg)](https://arxiv.org/abs/2509.06305)
 [![DOI](https://img.shields.io/badge/DOI-10.1103%2F55gp--mfg6-blue.svg)](https://doi.org/10.1103/55gp-mfg6)
+[![arXiv](https://img.shields.io/badge/arXiv-2509.06305-b31b1b.svg)](https://arxiv.org/abs/2509.06305)
+
 
 This repository is the code for the paper "Efficient Convex Optimization for Bosonic State Tomography".
 
