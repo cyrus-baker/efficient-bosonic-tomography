@@ -1,24 +1,25 @@
 import jax
 
+
+from qutip import coherent, basis, fidelity, plot_fock_distribution, thermal_dm, tensor,Qobj  # noqa: F401
+# from qutip.qobj import Qobj
+import numpy as np
+import jax.numpy as jnp
+
+import time
+
+import wandb
+
+
+from efficient_bosonic_tomography.displacer import Alpha2RowMultiModeWigner#2/pi移到Alpha2RowMultiModeWigner
+
+# from statsmodels.nonparametric.kernel_density import KDEMultivariate
+import dynamiqs as dq
+
 jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_platform_name", "gpu")
 # enable compilation cache
 jax.config.update("jax_compilation_cache_dir", "/tmp/jax_cache")
-from qutip import coherent, basis, fidelity, plot_fock_distribution, thermal_dm, tensor
-from qutip import Qobj
-import numpy as np
-import jax.numpy as jnp
-import matplotlib.pyplot as plt
-import time
-from tqdm import tqdm
-import wandb
-import cvxpy as cp
-from scipy.sparse import csr_matrix
-
-from displacer import Alpha2RowMultiModeWigner#2/pi移到Alpha2RowMultiModeWigner
-
-# from statsmodels.nonparametric.kernel_density import KDEMultivariate
-import dynamiqs as dq
 
 def project_on_simplex(rho):
     from optax.projections import projection_simplex
@@ -49,33 +50,38 @@ def loss_func(rho: jnp.ndarray, A: jnp.ndarray, b: jnp.ndarray):
     return jnp.mean(loss)
 
 if __name__ == "__main__":
-    T_matrix = [10,25,50,100,200]
-    BATCH_SIZE_matrix = [16,32,64,128,256,512]
-    for p in range(len(BATCH_SIZE_matrix)):
+    for p in range(1):
         config = {
         "optimizer": "proximal gradient descent",
-        "num_modes": 4,
-        "N_single": 3  ,
-        "T": 10,
-        "BATCH_SIZE": 256, 
-        "eta_start": 1e3,
+        "num_modes": 2,
+        "N_single": 6   ,
+        "T": 1,
+        "BATCH_SIZE": 3000, 
+        "eta_start": 0.5,
         "method": 2,
-        "num_of_steps": 1000,
         }
 
-        run = wandb.init(project="qst-scp-Wigner-four-mode", config=config)
+        # optimizer = "proximal gradient descent"
+        # num_modes = 2
+        # N_single =  5
+        # T = 200
+        # BATCH_SIZE = 256
+        # eta_start = 1e3
+        # method = 2
+
+        run = wandb.init(project="qst-scp-Wigner-two-mode", config=config)
 
         N_single = config["N_single"]
         num_modes = config["num_modes"]
         T = config["T"]
         eta_start = config["eta_start"]
         BATCH_SIZE = config["BATCH_SIZE"]
-        num_of_steps = config["num_of_steps"]
 
         # state
-        state = tensor(basis(N_single, 1), basis(N_single, 0), basis(N_single, 1), basis(N_single, 1)) + tensor(
-            basis(N_single, 1), basis(N_single, 1), basis(N_single, 0), basis(N_single, 0)
-        )
+
+        state1 = (basis(N_single , 0) + basis(N_single, 4)).unit()
+        state2 = basis(N_single , 2)
+        state = tensor(state1,state2) + tensor(state2,state1) #binomial code
         state = state.unit()
         state = state * state.dag()  
         state = jnp.array(state.full())
@@ -84,20 +90,19 @@ if __name__ == "__main__":
         # randomly sample n points from the data without using histo
 
 
-        alpha_values = np.random.uniform(-2, 2, (int(1e6), 8))
+        alpha_values = np.random.uniform(-2, 2, (int(1e6), 4))
 
         alpha_cv_list = [
             alpha_values[:, 0] + 1j * alpha_values[:, 1],
             alpha_values[:, 2] + 1j * alpha_values[:, 3],
-            alpha_values[:, 4] + 1j * alpha_values[:, 5],
-            alpha_values[:, 6] + 1j * alpha_values[:, 7],
+
         ]
         alpha_cv_list = np.array(alpha_cv_list).T
 
         _start = time.time()
         A_list = []
         b_list = []
-        A_gen = Alpha2RowMultiModeWigner(None, N_single, num_modes, N_compute=10)
+        A_gen = Alpha2RowMultiModeWigner(None, N_single, num_modes, N_compute=24)
         # split the vmap use to reduce memory usage
 
         N = N_single ** num_modes
@@ -110,7 +115,7 @@ if __name__ == "__main__":
         x_km2 = rho
 
         _start = time.time()
-        for k in range(num_of_steps):
+        for k in range(400):
             # 逐步缩小步长
             eta = eta_start / (1 + k) ** 0.5
             x_tau_k_list = []
@@ -130,6 +135,7 @@ if __name__ == "__main__":
                 A = A_gen(temp_list)
                 b = (A @ jnp.reshape(state, (-1, 1), order='F'))
 
+
                 loss, single_grad = jax.value_and_grad(loss_func)(v, A, b)  # 计算梯度
                 # loss, single_grad = jax.value_and_grad(loss_exact)(v, A, b)
 
@@ -138,11 +144,13 @@ if __name__ == "__main__":
 
                 # method 1
                 if config["method"] == 1:
+                # if method == 1:
                     x_tau_k = original_prox(v, eta, single_grad)
                     x_tau_k_list.append(x_tau_k)
 
                 # method 2, ASSG-r method
                 if config["method"] == 2:
+                # if method == 2:
                     v = (1 - 2 / (tau + 1)) * v + 2 / (tau + 1) * v_0
                     v = original_prox(v, eta, single_grad)
                     x_tau_k_list.append(v)
@@ -153,9 +161,11 @@ if __name__ == "__main__":
 
 
             if config["method"] == 1: #随机凸优化
+            # if method == 1:
                 x_tau_k = jnp.mean(jnp.array(x_tau_k_list), axis=0)
 
             if config["method"] == 2: #ASSG-r加速
+            # if method == 2:
                 x_tau_k = jnp.mean(jnp.array(x_tau_k_list), axis=0)
 
             # method 4, backtracking line search
@@ -182,17 +192,23 @@ if __name__ == "__main__":
                     }
                 )
 
-        run.finish()
 
-        # rho_reconstruct = Qobj(
-        #     np.array(v), dims=[[N_single, N_single, N_single, N_single], [N_single, N_single, N_single, N_single]]
-        # ).unit()
-        # rho_reconstruct = rho_reconstruct / rho_reconstruct.tr()
-        # print("fidelity:", fidelity(rho_reconstruct, state))
 
-        # # qfunc of reconstructed state
-        # plot_fock_distribution(rho_reconstruct)
-        # plot_fock_distribution(state)
+        
+
+
+
+    # run.finish()
+
+    # rho_reconstruct = Qobj(
+    #     np.array(v), dims=[[N_single, N_single], [N_single, N_single]]
+    # ).unit()
+    # rho_reconstruct = rho_reconstruct / rho_reconstruct.tr()
+    # print("fidelity:", fidelity(rho_reconstruct, state))
+
+    # # qfunc of reconstructed state
+    # plot_fock_distribution(rho_reconstruct)
+    # plot_fock_distribution(state)
 
 
 #%% 

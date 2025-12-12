@@ -5,13 +5,10 @@ import scipy.signal
 from numpyro.distributions import constraints
 import numpyro as npy
 import jax
-import equinox as eqx
-from typing import List
 
 import jax.numpy as jnp
 import dynamiqs as dq
 from functools import partial
-from displacer import Displacer
 
 def generate_qfunc(state: Qobj, xlim, y_lim, x_points, y_points, noise_level=None):
     x_vec = np.linspace(*xlim, x_points)

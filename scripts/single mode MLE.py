@@ -1,15 +1,12 @@
 import numpy as np
-import cvxpy as cp
 import time 
 import pandas as pd
-from qutip import coherent, ket2dm, Qobj, expect, fidelity, fock, fock_dm, displace, coherent_dm, qeye, squeeze
-from qutip.visualization import  plot_fock_distribution ,plot_wigner# ,plot_wigner_fock_distribution
+from qutip import coherent, ket2dm, Qobj, expect, fidelity, fock, fock_dm, displace, coherent_dm, qeye, squeeze  # noqa: F401
 
 from qutip.wigner import qfunc
 
 from tqdm.auto import tqdm # progress bar
 
-import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
 
 # 参数定义：

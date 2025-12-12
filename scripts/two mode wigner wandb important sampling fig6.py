@@ -1,23 +1,25 @@
 import jax
 
+
+from qutip import coherent, basis, fidelity, plot_fock_distribution, thermal_dm, tensor,Qobj  # noqa: F401
+# from qutip.qobj import Qobj
+import numpy as np
+import jax.numpy as jnp
+
+import time
+
+import wandb
+
+import pandas as pd
+from efficient_bosonic_tomography.displacer import Alpha2RowMultiModeWigner
+
+
+import dynamiqs as dq
+
 jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_platform_name", "gpu")
 # enable compilation cache
 jax.config.update("jax_compilation_cache_dir", "/tmp/jax_cache")
-from qutip import coherent, basis, fidelity, plot_fock_distribution, thermal_dm, tensor,Qobj
-# from qutip.qobj import Qobj
-import numpy as np
-import jax.numpy as jnp
-import matplotlib.pyplot as plt
-import time
-from tqdm import tqdm
-import wandb
-import cvxpy as cp
-from scipy.sparse import csr_matrix
-import pandas as pd
-from generate_data_for_wigner_four_mode import alpha2row, generate_qfunc, alpha2row_multimode, alpha2row_multimode_nonoise, Alpha2RowMultiModeWigner#2/pi移到Alpha2RowMultiModeWigner
-
-import dynamiqs as dq
 
 def project_on_simplex(rho):
     from optax.projections import projection_simplex
