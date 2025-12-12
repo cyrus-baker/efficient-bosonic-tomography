@@ -10,11 +10,11 @@ see dependencies in `pyproject.toml`
 
 ## Explanation of the code
 The code in `src/efficient_bosonic_tomography/displacer.py` is the code for Efficient Displacement Operator Calculation as well as Hilbert Space Trunction.
-The code in `src/efficient_bosonic_tomography/generate_data.py` is the code for Data Generation. For sampling with Q-function and Wigner function, please refer to the `test_generate_data.py` in `tests/` folder.
+The code in `src/efficient_bosonic_tomography/generate_data.py` is the code for Data Generation. 
 
+The code in folder `scripts/` is the code for the experiments in the paper.
 
-
-The rest of the code will be released after the cleanup is completed.
+** The code may contains bugs and other issues. Please feel free to report them. :smiley: **
 
 ## Citation
 
