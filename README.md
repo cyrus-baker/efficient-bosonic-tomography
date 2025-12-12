@@ -14,7 +14,7 @@ The code in `src/efficient_bosonic_tomography/generate_data.py` is the code for 
 
 The code in folder `scripts/` is the code for the experiments in the paper.
 
-** The code may contains bugs and other issues. Please feel free to report them. :smiley: **
+**The code may contains bugs and other issues. Please feel free to report them. :smiley:**
 
 ## Citation
 
